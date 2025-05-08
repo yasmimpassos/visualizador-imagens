@@ -68,6 +68,19 @@ if text:
     
     font = st.sidebar.selectbox("Tipo de fonte", options=font_names, index=0)
 
+crop = st.sidebar.checkbox("Recortar imagem")
+if crop:
+    crop_x1 = st.sidebar.number_input("X", min_value=0, value=0)
+    crop_y1 = st.sidebar.number_input("Y", min_value=0, value=0)
+
+    crop_tipe = st.sidebar.selectbox("Tipo de recorte", options=["por tamanho", "por ponto"], index=0)
+    if crop_tipe == "por ponto":
+        crop_x2 = st.sidebar.number_input("X2", min_value=0, value=200)
+        crop_y2 = st.sidebar.number_input("Y2", min_value=0, value=200)
+    else:
+        crop_altura = st.sidebar.number_input("Largura", min_value=0, value=200)
+        crop_largura = st.sidebar.number_input("Altura", min_value=0, value=200)
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -116,6 +129,12 @@ if uploaded_file:
     if text:
         color_bgr = tuple(int(color[i:i+2], 16) for i in (5, 3, 1))
         cv2.putText(filtered_image_np, text_input, (position_x, position_y), getattr(cv2, font), font_size / 30, color_bgr, thickness=2)
+
+    if crop:
+        if crop_tipe == "por ponto":
+            filtered_image_np = filtered_image_np[crop_y1:crop_y2, crop_x1:crop_x2]
+        else:
+            filtered_image_np = filtered_image_np[crop_y1:crop_y1 + crop_largura, crop_x1:crop_x1 + crop_altura]
 
     filtered_image = Image.fromarray(filtered_image_np)
 
