@@ -1,6 +1,8 @@
 import streamlit as st
 from PIL import Image
 import io
+import cv2
+import numpy as np
 
 st.set_page_config(page_title="Visualizador de Imagens", page_icon="📷", layout="wide")
 
@@ -9,12 +11,23 @@ st.write("Escolha uma imagem para poder editar")
 
 st.sidebar.title("Ajustes da imagem")
 
+resize = st.sidebar.checkbox("Redimensionar", value=False)
+if resize:
+   width = st.sidebar.number_input("Largura", min_value=1, value=800)
+   height = st.sidebar.number_input("Altura", min_value=1, value=600)
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
 
     image = Image.open(uploaded_file)
-    filtered_image = image.copy()
+    image_np = np.array(image)
+    filtered_image_np = image_np.copy()
+
+    if resize:
+       filtered_image_np = cv2.resize(filtered_image_np, (width, height))
+
+    filtered_image = Image.fromarray(filtered_image_np)
 
     col1, col2 = st.columns([1, 1], gap="large")
     with col1:
