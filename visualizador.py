@@ -16,14 +16,31 @@ if resize:
    width = st.sidebar.number_input("Largura", min_value=1, value=800)
    height = st.sidebar.number_input("Altura", min_value=1, value=600)
 
-rotate = st.sidebar.slider("Rotação", 0, 360, 0, step=1)
+rotate = st.sidebar.checkbox("Rotacionar", value=False)
+if rotate:
+    rotate = st.sidebar.slider("Rotação", 0, 360, 90, step=1)
 
 gray_scale = st.sidebar.checkbox("Escala de cinza")
 invert_colors = st.sidebar.checkbox("Inversão de cores")
+
 sharpen = st.sidebar.checkbox("Nitidez")
+if sharpen:
+    sharpen = st.sidebar.slider("Intensidade da nitidez", 1.0, 2.0, 1.0, step=0.1)
+
 edge_detection = st.sidebar.checkbox("Detecção de bordas")
+if edge_detection:
+    edge_detection = st.sidebar.slider("Intensidade da detecção de bordas", 50, 150, 100, step=10)
+    
+
 contrast = st.sidebar.checkbox("Aumento de contraste")
+if contrast:
+    contrast = st.sidebar.slider("Intensidade do contraste", 0.0, 3.0, 1.5, step=0.1)
+
 blur = st.sidebar.checkbox("Desfoque (Blur)")
+if blur:
+    blur = st.sidebar.slider("Intensidade do desfoque", 1, 10, 5, step=1)
+    blur *= 2
+    blur -= 1
 
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
@@ -48,24 +65,21 @@ if uploaded_file:
         filtered_image_np = cv2.bitwise_not(filtered_image_np)
 
     if sharpen:
-        kernel = np.array([[-1, -1, -1],
-                            [-1, 9, -1],
-                            [-1, -1, -1]])
+        kernel = np.array([[0, -1, 0],
+                           [-1, 4 + sharpen, -1],
+                           [0, -1, 0]], dtype=np.float32)
         
         filtered_image_np = cv2.filter2D(filtered_image_np, -1, kernel)
     
     if edge_detection:
-        filtered_image_np = cv2.Canny(filtered_image_np, 100, 200)
+        filtered_image_np = cv2.Canny(filtered_image_np, edge_detection, edge_detection * 2)
         filtered_image_np = cv2.cvtColor(filtered_image_np, cv2.COLOR_GRAY2BGR)
 
     if contrast:
-        alpha = 1.5
-        beta = 0
-        filtered_image_np = cv2.convertScaleAbs(filtered_image_np, alpha=alpha, beta=beta)
+        filtered_image_np = cv2.convertScaleAbs(filtered_image_np, alpha=contrast, beta=0)
 
     if blur:
-        kernel_size = (5, 5)
-        filtered_image_np = cv2.GaussianBlur(filtered_image_np, kernel_size, 0)
+        filtered_image_np = cv2.GaussianBlur(filtered_image_np, (blur, blur), 0)
 
     filtered_image = Image.fromarray(filtered_image_np)
 
