@@ -36,6 +36,14 @@ contrast = st.sidebar.checkbox("Aumento de contraste")
 if contrast:
     contrast = st.sidebar.slider("Intensidade do contraste", 0.0, 3.0, 1.5, step=0.1)
 
+brightness = st.sidebar.checkbox("Aumento de brilho")
+if brightness:
+    brightness = st.sidebar.slider("Intensidade do brilho", -100, 100, 0, step=1)
+
+saturation = st.sidebar.checkbox("Aumento de saturação")
+if saturation:
+    saturation = st.sidebar.slider("Intensidade da saturação", 0.0, 3.0, 1.0, step=0.1)
+
 blur = st.sidebar.checkbox("Desfoque (Blur)")
 if blur:
     blur = st.sidebar.slider("Intensidade do desfoque", 1, 10, 5, step=1)
@@ -114,8 +122,21 @@ if uploaded_file:
         filtered_image_np = cv2.Canny(filtered_image_np, edge_detection, edge_detection * 2)
         filtered_image_np = cv2.cvtColor(filtered_image_np, cv2.COLOR_GRAY2BGR)
 
-    if contrast:
+    if contrast and brightness:
+        filtered_image_np = cv2.convertScaleAbs(filtered_image_np, alpha=contrast, beta=brightness)
+    elif contrast:
         filtered_image_np = cv2.convertScaleAbs(filtered_image_np, alpha=contrast, beta=0)
+    elif brightness:
+        filtered_image_np = cv2.convertScaleAbs(filtered_image_np, alpha=1, beta=brightness)
+
+    if saturation:
+        hsv = cv2.cvtColor(filtered_image_np, cv2.COLOR_BGR2HSV).astype(np.float32)
+        h, s, v = cv2.split(hsv)
+        s = np.where(s > 0, s * saturation, s)
+        s = np.clip(s, 0, 255)
+
+        hsv_merged = cv2.merge((h, s, v)).astype(np.uint8)
+        filtered_image_np = cv2.cvtColor(hsv_merged, cv2.COLOR_HSV2BGR)
 
     if blur:
         filtered_image_np = cv2.GaussianBlur(filtered_image_np, (blur, blur), 0)
