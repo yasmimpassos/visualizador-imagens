@@ -45,6 +45,29 @@ if blur:
 flip_horizontal = st.sidebar.checkbox("Espelhar imagem horizontalmente")
 flip_vertical = st.sidebar.checkbox("Espelhar imagem verticalmente")
 
+text = st.sidebar.checkbox("Adicionar texto")
+if text:
+    text_input = st.sidebar.text_input("Texto a ser adicionado", value="Texto de exemplo")
+    font_size = st.sidebar.slider("Tamanho da fonte", 10, 100, 30, step=1)
+    color = st.sidebar.color_picker("Cor do texto", "#000000")
+    position_x = st.sidebar.number_input("Posição X", min_value=0, value=50)
+    position_y = st.sidebar.number_input("Posição Y", min_value=0, value=50)
+
+    font_names = [
+        "FONT_HERSHEY_SIMPLEX",
+        "FONT_HERSHEY_COMPLEX",
+        "FONT_HERSHEY_DUPLEX",
+        "FONT_HERSHEY_TRIPLEX",
+        "FONT_HERSHEY_COMPLEX_SMALL",
+        "FONT_HERSHEY_PLAIN",
+        "FONT_HERSHEY_SCRIPT_COMPLEX",
+        "FONT_ITALIC",
+        "QT_FONT_BLACK",
+        "QT_FONT_NORMAL"
+    ]
+    
+    font = st.sidebar.selectbox("Tipo de fonte", options=font_names, index=0)
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -89,6 +112,10 @@ if uploaded_file:
     
     if flip_vertical:
         filtered_image_np = cv2.flip(filtered_image_np, 0)
+
+    if text:
+        color_bgr = tuple(int(color[i:i+2], 16) for i in (5, 3, 1))
+        cv2.putText(filtered_image_np, text_input, (position_x, position_y), getattr(cv2, font), font_size / 30, color_bgr, thickness=2)
 
     filtered_image = Image.fromarray(filtered_image_np)
 
