@@ -42,6 +42,9 @@ if blur:
     blur *= 2
     blur -= 1
 
+flip_horizontal = st.sidebar.checkbox("Espelhar imagem horizontalmente")
+flip_vertical = st.sidebar.checkbox("Espelhar imagem verticalmente")
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -80,6 +83,12 @@ if uploaded_file:
 
     if blur:
         filtered_image_np = cv2.GaussianBlur(filtered_image_np, (blur, blur), 0)
+
+    if flip_horizontal:
+        filtered_image_np = cv2.flip(filtered_image_np, 1)
+    
+    if flip_vertical:
+        filtered_image_np = cv2.flip(filtered_image_np, 0)
 
     filtered_image = Image.fromarray(filtered_image_np)
 
