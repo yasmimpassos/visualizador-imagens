@@ -89,13 +89,14 @@ if uploaded_file:
     with col2:
         st.image(filtered_image, caption="Imagem com filtros aplicados", use_container_width=True)
 
+    format = st.selectbox("Escolha o formato da imagem desejada", options=["PNG", "JPEG", "PDF"], index=0, key="format")
     buffer = io.BytesIO()
-    filtered_image.save(buffer, format="PNG")
+    filtered_image.save(buffer, format=format)
     byte_data = buffer.getvalue()
 
     st.download_button(
         label="Baixar imagem editada",
         data=byte_data,
-        file_name="imagem_editada.png",
-        mime="image/png",
+        file_name=f"imagem_editada.{format.lower()}",
+        mime=f"image/{format.lower()}" if format != "PDF" else "application/pdf",
     )
