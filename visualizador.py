@@ -16,6 +16,8 @@ if resize:
    width = st.sidebar.number_input("Largura", min_value=1, value=800)
    height = st.sidebar.number_input("Altura", min_value=1, value=600)
 
+rotate = st.sidebar.slider("Rotação", 0, 360, 0, step=1)
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -26,6 +28,11 @@ if uploaded_file:
 
     if resize:
        filtered_image_np = cv2.resize(filtered_image_np, (width, height))
+
+    if rotate != 0:
+       center = (filtered_image_np.shape[1] // 2, filtered_image_np.shape[0] // 2)
+       rotation_matrix = cv2.getRotationMatrix2D(center, rotate, 1.0) 
+       filtered_image_np = cv2.warpAffine(filtered_image_np, rotation_matrix, (filtered_image_np.shape[1], filtered_image_np.shape[0]))
 
     filtered_image = Image.fromarray(filtered_image_np)
 
