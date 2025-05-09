@@ -3,6 +3,8 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
+from streamlit_image_comparison import image_comparison
+from rembg import remove
 
 st.set_page_config(page_title="Visualizador de Imagens", page_icon="📷", layout="wide")
 
@@ -89,6 +91,8 @@ if crop:
         crop_altura = st.sidebar.number_input("Largura", min_value=0, value=200)
         crop_largura = st.sidebar.number_input("Altura", min_value=0, value=200)
 
+remove_bg = st.sidebar.checkbox("Remover fundo")
+
 uploaded_file = st.file_uploader("Selecione uma imagem", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -148,7 +152,7 @@ if uploaded_file:
         filtered_image_np = cv2.flip(filtered_image_np, 0)
 
     if text:
-        color_bgr = tuple(int(color[i:i+2], 16) for i in (5, 3, 1))
+        color_bgr = tuple(int(color[i:i+2], 16) for i in (1, 3, 5))
         cv2.putText(filtered_image_np, text_input, (position_x, position_y), getattr(cv2, font), font_size / 30, color_bgr, thickness=2)
 
     if crop:
@@ -156,6 +160,9 @@ if uploaded_file:
             filtered_image_np = filtered_image_np[crop_y1:crop_y2, crop_x1:crop_x2]
         else:
             filtered_image_np = filtered_image_np[crop_y1:crop_y1 + crop_largura, crop_x1:crop_x1 + crop_altura]
+
+    if remove_bg:
+        filtered_image_np = remove(filtered_image_np)
 
     filtered_image = Image.fromarray(filtered_image_np)
 
@@ -167,7 +174,13 @@ if uploaded_file:
 
     format = st.selectbox("Escolha o formato da imagem desejada", options=["PNG", "JPEG", "PDF"], index=0, key="format")
     buffer = io.BytesIO()
-    filtered_image.save(buffer, format=format)
+    if format == "JPEG" and filtered_image.mode == "RGBA":
+        background = Image.new("RGB", filtered_image.size, (255, 255, 255))
+        background.paste(filtered_image, mask=filtered_image.split()[3]) 
+        background.save(buffer, format="JPEG")
+    else:
+        filtered_image.save(buffer, format=format)
+
     byte_data = buffer.getvalue()
 
     st.download_button(
